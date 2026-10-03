@@ -1,0 +1,32 @@
+{
+  "offline_tests": {
+    "passed": 39,
+    "deselected": 1
+  },
+  "live_model_test": {
+    "passed": 1,
+    "models_checked": 2
+  },
+  "ruff_lint": "passed",
+  "ruff_format": "passed",
+  "mypy": {
+    "status": "passed",
+    "source_files": 18
+  },
+  "python_compile": "passed",
+  "javascript_syntax": "passed",
+  "evaluation": "both full cleaned held-out test sets completed",
+  "docker_build": "not run: docker unavailable",
+  "ci": "configured, not run remotely",
+  "browser_ui": "not visually verified: runtime socket restrictions",
+  "browser_onnx": "not verified",
+  "github_upload": "source published to private repository",
+  "vercel": "deferred by user",
+  "live_comparison_api": {
+    "status_code": 200,
+    "sentiment": "positive",
+    "emotion": "joy",
+    "sentiment_explanation_tokens": 7
+  },
+  "github_repository": "https://github.com/divbytes-prog/nlp-application-suite"
+}

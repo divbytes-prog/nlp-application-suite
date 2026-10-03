@@ -1,0 +1,26 @@
+name: Quality
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e '.[dev]'
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+      - run: pytest -m 'not live'
+      - run: python -m compileall -q app scripts
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nlp-suite .
+      - run: |
+          docker run -d -p 8000:8000 --name suite -e ENABLE_TRANSFORMERS=0 nlp-suite
+          for i in $(seq 1 30); do curl -fsS http://localhost:8000/health && exit 0; sleep 2; done
+          docker logs suite
+          exit 1

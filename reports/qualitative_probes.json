@@ -1,0 +1,58 @@
+[
+  {
+    "phenomenon": "negation",
+    "text": "I am not happy with this result.",
+    "rules_sentiment": "negative",
+    "transformer_sentiment": "negative",
+    "transformer_emotion": "joy",
+    "transformer_sentiment_confidence": 0.9159836173057556
+  },
+  {
+    "phenomenon": "sarcasm",
+    "text": "Great. Another two hours stuck in traffic.",
+    "rules_sentiment": "positive",
+    "transformer_sentiment": "negative",
+    "transformer_emotion": "anger",
+    "transformer_sentiment_confidence": 0.7413269281387329
+  },
+  {
+    "phenomenon": "mixed",
+    "text": "I am happy but worried about tomorrow.",
+    "rules_sentiment": "neutral",
+    "transformer_sentiment": "positive",
+    "transformer_emotion": "joy",
+    "transformer_sentiment_confidence": 0.8909602165222168
+  },
+  {
+    "phenomenon": "slang",
+    "text": "This is sick, I love it.",
+    "rules_sentiment": "positive",
+    "transformer_sentiment": "positive",
+    "transformer_emotion": "sadness",
+    "transformer_sentiment_confidence": 0.9638597369194031
+  },
+  {
+    "phenomenon": "misspelling",
+    "text": "I am sooo happpy.",
+    "rules_sentiment": "neutral",
+    "transformer_sentiment": "positive",
+    "transformer_emotion": "joy",
+    "transformer_sentiment_confidence": 0.9830500483512878
+  },
+  {
+    "phenomenon": "domain_shift",
+    "text": "Costs fell while revenue remained unchanged.",
+    "rules_sentiment": "neutral",
+    "transformer_sentiment": "neutral",
+    "transformer_emotion": "joy",
+    "transformer_sentiment_confidence": 0.7446199655532837
+  },
+  {
+    "phenomenon": "code_mixing",
+    "text": "Aaj main bahut खुश hoon.",
+    "rules_sentiment": "neutral",
+    "transformer_sentiment": "neutral",
+    "transformer_emotion": "anger",
+    "transformer_sentiment_confidence": 0.7788437008857727
+  }
+]
