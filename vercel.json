@@ -3,7 +3,8 @@
   "framework": "fastapi",
   "functions": {
     "app/main.py": {
-      "excludeFiles": "{tests/**,data/cache/**,.venv/**}"
+      "excludeFiles": "{tests/**,data/cache/**,.venv/**}",
+      "includeFiles": "{public/**,reports/**}"
     }
   }
 }
