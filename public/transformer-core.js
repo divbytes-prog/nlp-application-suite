@@ -15,14 +15,14 @@ export function convert(rows, task, threshold = .60, precision = 'quantized') {
     scores[label] = row.score;
   }
   if (Object.keys(scores).length !== labels.length) throw new Error('Incomplete model output.');
-  const label = labels.reduce((a, b) => scores[a] > scores[b] ? a : b);
+  const label = labels.reduce((a, b) => scores[a] >= scores[b] ? a : b);
   return {label, scores, confidence: scores[label], uncertain: scores[label] < threshold,
     confidence_kind: `uncalibrated ${precision === 'full' ? 'ONNX' : 'quantized ONNX'} softmax`, evidence: [],
     explanation_note: 'Token deletion shows sensitivity, not causal attribution. Browser ONNX scores can differ from Python scores.'};
 }
 const EMOJIS = {joy:['😊','😄','🎉'],love:['❤️','🥰','😍'],sadness:['😢','💙','🫂'],anger:['😤','😡','💢'],fear:['😟','😰','🫂'],surprise:['😮','🤯','✨'],positive:['😊','✨','👍'],negative:['😔','💙','🫂'],neutral:['💬','📝','🤔']};
 export function recommend(text, sentiment, emotion) {
-  const tokens = new Set((text.normalize('NFKC').toLowerCase().match(/[\p{L}\p{N}_]+/gu) || []));
+  const tokens = new Set((text.normalize('NFKC').toLowerCase().replaceAll('’', "'").match(/[\p{L}\p{N}_]+(?:'[\p{L}\p{N}_]+)?/gu) || []));
   const keywords = {birthday:'🎂',coffee:'☕',travel:'✈️',exam:'📚',win:'🏆'};
   return [...new Set([...Object.entries(keywords).filter(([word]) => tokens.has(word)).map(([,emoji]) => emoji), ...(EMOJIS[emotion] || EMOJIS[sentiment] || EMOJIS.neutral)])].slice(0,3);
 }

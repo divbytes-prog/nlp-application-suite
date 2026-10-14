@@ -16,7 +16,7 @@ The responsive web interface includes analysis, batch processing, preprocessing,
 - Deterministic top-3 emoji recommendations with keyword priority; no learned emoji accuracy claimed.
 - UTF-8 CSV/TXT batches with selectable text column, aggregate counts, 1 MB / 100-row limits, and formula-safe CSV export.
 - Optional normalization, tokenization, stop-word handling, educational suffix stemming and 1–3 grams. Negation words are retained. No lemmatizer is claimed.
-- Comparison of Python rules/transformers with disagreement notices; a browser-only quantized sentiment alternative.
+- Comparison of Python rules/transformers with disagreement notices; browser-only ONNX sentiment and emotion alternatives, with quantized or full precision modes.
 - Evaluation dashboard with confusion matrices, class metrics, calibration plots and error indices filtered by class/confidence.
 - No application persistence of submitted text, no credentials required for public model downloads, sanitized server errors.
 - FastAPI OpenAPI documentation, automated tests, Ruff, MyPy, CI and a container definition.
@@ -35,7 +35,7 @@ flowchart TD
   Reports --> UI
 ```
 
-A small HTML/CSS/JavaScript interface is used instead of Streamlit because the requested deployment provider is Vercel. Local/container installations expose full Python transformer inference. Vercel defaults to the lightweight rule API; the optional browser worker supplies quantized sentiment inference. **Browser emotion uses rules**, clearly labeled. The browser model has not been benchmarked by the Python evaluation, and its results may differ.
+A small HTML/CSS/JavaScript interface is used instead of Streamlit because the requested deployment provider is Vercel. Local/container installations expose full Python transformer inference. Vercel defaults to the lightweight rule API; the browser worker supplies sentiment and emotion inference. The website now supports ONNX transformer inference for both sentiment and emotion, token-deletion explanations, comparison and transformer batches. A fast quantized mode is the default; full precision is available for closer numerical agreement with Python. The browser model has not been benchmarked by the Python evaluation, and its results may differ.
 
 ## Setup — Linux/macOS
 
@@ -81,7 +81,7 @@ Activation can be skipped by invoking `.venv/Scripts/python.exe` directly. `.env
 
 ### Downloads and resources
 
-Python models load lazily on first transformer request. Hugging Face caches weights outside source control; `HF_HOME` may override the location. Plan approximately 2 GB free disk and 2–4 GB available RAM for both CPU models plus dependencies; these are estimates, not measured hardware requirements. The browser sentiment option downloads quantized ONNX weights on first use, potentially over 100 MB, and uses the browser cache. It requires network access to jsDelivr, Hugging Face and ONNX runtime assets. Browser transformer text remains on-device, but the separately requested baseline text goes to the API. No API key is needed.
+Python models load lazily on first transformer request. Hugging Face caches weights outside source control; `HF_HOME` may override the location. Plan approximately 2 GB free disk and 2–4 GB available RAM for both CPU models plus dependencies; these are estimates, not measured hardware requirements. The browser transformer option downloads ONNX weights on first use, potentially over 100 MB, and uses the browser cache. It requires network access to jsDelivr, Hugging Face and ONNX runtime assets. Browser transformer inference runs on-device, but baseline analysis and batch validation also send the text to the API. No API key is needed.
 
 ## Models
 
@@ -177,7 +177,13 @@ PowerShell live test: `$env:RUN_LIVE_MODELS="1"; pytest -m live`. Most tests moc
 
 ## Deployment
 
-Vercel deployment is deferred at the user’s request. Import this GitHub repository into Vercel using its FastAPI preset and Python 3.12. `vercel.json` identifies the framework; runtime dependencies exclude PyTorch. Leave `ENABLE_TRANSFORMERS=0`. The rule API, UI and optional browser sentiment are available in this architecture. Full Python emotion/sentiment inference belongs in the Docker/local deployment. Do not enable large Python models in the lightweight Vercel bundle without changing its dependency and resource setup. There is no verified live deployment URL yet.
+The app is deployed at https://nlp-application-suite.vercel.app/. Vercel runs the lightweight rule API, preprocessing, batch validation and evaluation endpoints. Python transformers remain disabled in this serverless bundle; the default website engine runs both transformer tasks in a Web Worker using Transformers.js 2.17.2. A local server with `ENABLE_TRANSFORMERS=1` automatically uses Python models instead.
+
+The browser sentiment model is the pinned Xenova conversion listed above. Browser emotion uses `TrumpMcDonaldz/bhadresh-savani-distilbert-base-uncased-emotion-ONNX`, revision `17dd05bd2206a495d9b796e4103cb0089cdc59be` (Apache 2.0), whose configuration identifies the same upstream Bhadresh Savani DistilBERT classifier and six labels. Its ONNX filename is `decoder_model_merged`; this is passed explicitly to the classification pipeline. Model conversion provenance is distinct from verifying bit-for-bit weight equality.
+
+Select **Transformers · sentiment + emotion** for contextual analysis or **Compare rules + transformers** for side-by-side results. Token deletion explanations run for both tasks, bounded to 16 word positions. Batch analysis validates uploads through the API and then runs both transformers sequentially in the browser. Safe CSV export contains the selected engine's predictions; failed inference does not silently export rule results as transformer results.
+
+First use downloads roughly 200 MB in fast mode and substantially more in full precision mode; both models stay cached by the browser where supported. A reliable connection, a modern browser and sufficient device memory are required. ONNX conversion, quantization and numerical runtime differences can change scores and occasionally labels. The Python benchmark dashboard is unchanged and must not be interpreted as browser-model evaluation. Full local Python parity would require hosting the exact Python models on a persistent inference backend.
 
 ## Privacy, limitations and design decisions
 

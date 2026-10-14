@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {convert,predict,analyzeModels,modelText} from '../public/transformer-core.js';
+const sentiment=async text => [{label:'negative',score:text.includes('bad')?.8:.1},{label:'neutral',score:.1},{label:'positive',score:text.includes('bad')?.1:.8}];
+const emotion=async text => ['sadness','joy','love','anger','fear','surprise'].map(label=>({label,score:label===(text.includes('bad')?'sadness':'joy')?.75:.05}));
+assert.equal(modelText('Hi @alice https://example.org'),'Hi @user http');
+assert.throws(()=>convert([{label:'neutral',score:1}],'sentiment'),/Incomplete/);
+const prediction=await predict(sentiment,'good bad','sentiment',{explain:true});
+assert.equal(prediction.label,'negative');
+assert.equal(prediction.evidence.length,2);
+assert.ok(prediction.evidence[1].contribution>0);
+const result=await analyzeModels({sentiment,emotion},'Good birthday',{threshold:.9});
+assert.equal(result.emotion.label,'joy');
+assert.equal(result.sentiment.uncertain,true);
+assert.deepEqual(result.emojis,['🎂','😊','😄']);
+assert.equal(result.engine,'browser');
+console.log('Browser model score, explanation, threshold, emoji and response checks passed.');

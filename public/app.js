@@ -57,7 +57,7 @@ $('batch-btn').addEventListener('click',async()=>{
     const transformers=$('batch-engine').value==='browser';
     if(transformers){
       const config=await serverConfig;
-      const response=await browserInference({texts:rows.map(row=>row.text),precision:$('precision').value,threshold:config.threshold},message=>$('batch-status').textContent=message);
+      const response=await browserInference({texts:rows.map(row=>row.text),precision:$('batch-precision').value,threshold:config.threshold},message=>$('batch-status').textContent=message);
       rows=rows.map((row,i)=>({...row,sentiment:response.results[i].sentiment.label,emotion:response.results[i].emotion.label,confidence:response.results[i].sentiment.confidence,uncertain:response.results[i].sentiment.uncertain||response.results[i].emotion.uncertain}));
     }
     batchRows=rows;
