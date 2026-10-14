@@ -1,4 +1,39 @@
 import {pipeline,env} from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+import {MODELS,analyzeModels} from './transformer-core.js';
 env.allowLocalModels=false;
-let model;
-self.addEventListener('message',async event=>{const {id,text}=event.data;try{if(!model)model=await pipeline('sentiment-analysis','Xenova/twitter-roberta-base-sentiment-latest',{revision:'f3ec4d0925f90c3ca7ee7814f52d6ee7cf180445',quantized:true,progress_callback:()=>self.postMessage({id,status:'progress'})});const start=performance.now();const prepared=text.replace(/https?:\/\/\S+/g,'http').replace(/@\w+/g,'@user');const result=await model(prepared,{topk:null,truncation:true,max_length:256});const scores=Object.fromEntries(result.map(r=>[r.label.toLowerCase(),r.score]));const label=Object.keys(scores).reduce((a,b)=>scores[a]>scores[b]?a:b);self.postMessage({id,prediction:{label,confidence:scores[label],scores,uncertain:scores[label]<.60,confidence_kind:'uncalibrated quantized softmax'},latency_ms:Math.round((performance.now()-start)*100)/100});}catch{self.postMessage({id,error:'Browser sentiment model unavailable. Check your connection or use the local Python transformer.'});}});
+env.backends.onnx.wasm.numThreads=1;
+let pipelines={},loadedPrecision;
+async function loadModels(id,precision) {
+  if (loadedPrecision!==precision) {
+    for (const pipe of Object.values(pipelines)) await pipe.dispose();
+    pipelines={}; loadedPrecision=precision;
+  }
+  for (const [task,spec] of Object.entries(MODELS)) {
+    if (pipelines[task]) continue;
+    const progress_callback=progress=>{
+      const percent=Number.isFinite(progress.progress)?` ${Math.round(progress.progress)}%`:'';
+      self.postMessage({id,status:'progress',message:`Loading ${task} model${percent}. First use downloads model files; later runs use the browser cache.`});
+    };
+    pipelines[task]=await pipeline('text-classification',spec.id,{revision:spec.revision,model_file_name:spec.model_file_name,quantized:precision!=='full',progress_callback});
+  }
+}
+let queue=Promise.resolve();
+self.addEventListener('message',event=>{
+  const {id,text,texts,explain=false,precision='quantized',threshold=.60}=event.data;
+  queue=queue.then(async()=>{
+    try {
+      await loadModels(id,precision);
+      const options={explain,precision,threshold,onProgress:message=>self.postMessage({id,status:'progress',message})};
+      if (texts) {
+        const results=[];
+        for (let i=0;i<texts.length;i++) {
+          self.postMessage({id,status:'progress',message:`Analyzing row ${i+1} of ${texts.length} with both transformers…`});
+          results.push(await analyzeModels(pipelines,texts[i],{...options,explain:false}));
+        }
+        self.postMessage({id,results});
+      } else self.postMessage({id,result:await analyzeModels(pipelines,text,options)});
+    } catch(error) {
+      self.postMessage({id,error:`Transformer inference failed: ${error.message || 'model unavailable'}. Check network access and available device memory, then retry.`});
+    }
+  });
+});
